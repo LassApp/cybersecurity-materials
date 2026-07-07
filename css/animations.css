@@ -1,0 +1,262 @@
+/* ==========================================================================
+   ANIMATIONS.CSS — KEYFRAMES, TRANSIZIONI DINAMICHE E FALLBACK DI MOVIMENTO
+   ==========================================================================
+   Quinto e ultimo foglio di stile nell'ordine di caricamento (dopo
+   variables.css, base.css, components.css e screens.css — l'ordine è
+   commentato in cima a index.html). Essendo l'ultimo file caricato, vince
+   sempre a parità di specificità su qualunque regola precedente che
+   dichiari la stessa proprietà sullo stesso selettore: usato qui
+   deliberatamente in un solo punto (la transition di .alert-gauge-fill,
+   vedi sezione 3), esattamente come components.css/screens.css avevano
+   già fatto affidamento sull'ordine di caricamento in casi analoghi
+   (es. .status-text colorato da components.css sopra il default di
+   base.css).
+
+   Contiene:
+     1) @keyframes "status-pulse" — pallino di stato header + step attivo
+        della scansione (nomi già agganciati in components.css e
+        screens.css, qui finalmente definiti)
+     2) @keyframes "spin" — anello di caricamento della landing (nome
+        già agganciato in screens.css)
+     3) riempimento animato del gauge di rischio (stroke-dashoffset),
+        via transition (non keyframes — vedi nota nella sezione)
+     4) @keyframes "step-appear" — comparsa sequenziale degli step di
+        scansione, nuova classe .scan-step--appear
+     5) UN SOLO blocco consolidato @media (prefers-reduced-motion: reduce)
+        che raccoglie tutti i fallback promessi nei file precedenti
+
+   Cosa NON contiene, e perché:
+   - il count-up numerico di .alert-gauge-value / .scan-metrics__count:
+     è un'animazione di CONTENUTO testuale (il numero cambia), non di
+     proprietà CSS — spetta a scanEngine.js incrementare il testo con
+     setInterval/requestAnimationFrame. Nota per quella fase, registrata
+     qui perché riguarda il movimento dell'interfaccia: se il count-up è
+     ad alta frequenza, l'elemento aggiornato NON deve avere aria-live
+     durante l'incremento (uno screen reader annuncerebbe decine di
+     valori intermedi) — va annunciato solo il valore finale, ad
+     esempio scrivendolo in quel momento in #live-announcer.
+   - la dissolvenza fra le 5 <section class="screen">: la decisione è
+     stata presa in js/uiController.js (funzione showScreen), non qui —
+     e in modo diverso da come ipotizzato in una prima stesura di
+     questo stesso commento: nessuna classe CSS transitoria
+     "screen--entering", l'intero crossfade (opacità + leggera
+     traslazione verticale) è pilotato direttamente via Web Animations
+     API (element.animate()), con durata/easing letti a runtime dagli
+     stessi design token di questo file (--duration-moderate,
+     --ease-standard) così restano sincronizzati senza duplicazione. Il
+     meccanismo [hidden] → display:none resta quello già descritto in
+     base.css/screens.css: uiController.js applica [hidden] alla
+     schermata uscente solo DOPO la fine della sua animazione di
+     uscita, mai in sovrapposizione prolungata con quella entrante.
+     Questo file non contiene perciò alcuna classe o @keyframes per il
+     cambio schermata: è tutto puro JS, per costruzione — vedi il
+     commento introduttivo di uiController.js per il dettaglio della
+     scelta.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------
+   1. STATUS-PULSE
+   --------------------------------------------------------------------
+   Usata da (nomi identici nei file di origine):
+     - components.css → .status-dot--active / --warning / --danger
+     - screens.css     → .scan-step--active .scan-step__dot
+
+   Tutti e 4 i selettori hanno già un box-shadow statico (il "bagliore",
+   --glow-accent/-warning/-danger) dichiarato nel proprio file di
+   origine: qui si anima solo l'opacità dell'intero elemento, un
+   "respiro" che comunica un processo in corso senza mai far sparire
+   del tutto il bagliore sottostante (che a 50% di opacità resta
+   comunque percepibile, essendo una propria proprietà indipendente,
+   non tweenata da questo keyframe).
+   -------------------------------------------------------------------- */
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+
+/* --------------------------------------------------------------------
+   2. SPIN
+   --------------------------------------------------------------------
+   Usata da screens.css → .loader-spinner (landing). "from" è omesso
+   perché l'elemento non ha alcuna trasformazione di base: il valore
+   iniziale implicito è 0deg, identico a "from { transform: rotate(0) }"
+   ma senza ripeterlo.
+   -------------------------------------------------------------------- */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* --------------------------------------------------------------------
+   3. RIEMPIMENTO DEL GAUGE DI RISCHIO (.alert-gauge-fill)
+   --------------------------------------------------------------------
+   SCELTA DI TECNICA: transition, non @keyframes.
+   ......................................................................
+   Il valore di arrivo (stroke-dashoffset finale) non è un valore fisso
+   di design ma un punteggio calcolato a runtime da scanEngine.js — un
+   @keyframes richiederebbe di conoscere in anticipo la percentuale
+   finale per scrivere il "to", cosa impossibile in un foglio di stile
+   statico senza ricorrere a CSS custom properties animabili (@property,
+   supporto browser non abbastanza uniforme per questo progetto). La
+   soluzione robusta è invece lasciare che sia scanEngine.js a impostare
+   direttamente lo stroke-dashoffset finale via
+   style.strokeDashoffset (partendo dal valore statico 326.73 già
+   presente in components.css, "0% di riempimento"): la transition qui
+   sotto anima automaticamente QUALUNQUE cambio di valore su quella
+   proprietà, qualunque esso sia, esattamente come già avviene per
+   .scan-progress-fill in components.css (stesso pattern, lì con
+   "width").
+
+   PERCHÉ QUESTA REGOLA SOVRASCRIVE (non somma) quella di components.css.
+   ......................................................................
+   components.css dichiara già una transition su questo stesso selettore
+   (solo sulla proprietà "stroke", per il cambio di colore fra la
+   variante di default e .alert-gauge--danger). La proprietà CSS
+   "transition" è uno shorthand: due dichiarazioni sullo stesso
+   selettore a parità di specificità (qui: una sola classe in entrambi
+   i casi) non si fondono, vince per intero l'ultima caricata — questo
+   file è l'ultimo del progetto (vedi ordine in index.html), quindi la
+   riga seguente deve ripetere ANCHE "stroke", o l'animazione morbida
+   del colore andrebbe perduta.
+   -------------------------------------------------------------------- */
+
+.alert-gauge-fill {
+  transition:
+    stroke var(--duration-base) var(--ease-standard),
+    stroke-dashoffset var(--duration-slow) var(--ease-emphasized);
+}
+
+
+/* --------------------------------------------------------------------
+   4. COMPARSA SEQUENZIALE DEGLI STEP DI SCANSIONE (.scan-step--appear)
+   --------------------------------------------------------------------
+   Classe NUOVA (non ancora referenziata nei file precedenti): va
+   aggiunta da scanEngine.js a ciascun <li class="scan-step ..."> nel
+   momento in cui viene inserito nel DOM, in aggiunta — mai in
+   sostituzione — alla classe di stato pending/active/done già prevista
+   da screens.css. Le due classi governano aspetti indipendenti dello
+   stesso elemento: --appear anima solo l'ingresso una tantum, mentre
+   pending/active/done restano libere di cambiare più volte nel tempo
+   senza mai far ripartire l'animazione di ingresso (una classe già
+   applicata non "ri-anima" se il browser non la vede rimossa e
+   ri-aggiunta).
+
+   STAGGER TRAMITE CUSTOM PROPERTY, NON :nth-child.
+   ......................................................................
+   :nth-child assumerebbe un numero di step fisso e noto in anticipo;
+   scanEngine.js genera gli step a runtime e può in teoria variarne il
+   numero. La soluzione robusta è una custom property inline impostata
+   da JS su ciascun elemento al momento della creazione:
+     <li class="scan-step scan-step--pending scan-step--appear"
+         style="--step-index: 3">
+   Il fallback "var(--step-index, 0)" garantisce che un eventuale step
+   creato senza quell'inline style (es. in un test) parta comunque da
+   ritardo zero invece di rompere il calc().
+
+   "both" come fill-mode: applica i valori del keyframe "from" anche
+   PRIMA che l'animazione parta (durante il ritardo di stagger, l'item
+   resta invisibile invece di comparire subito e poi "saltare" indietro
+   a opacity:0) e i valori del keyframe "to" anche DOPO la fine
+   (ridondante con l'opacity:1 di base qui sotto, ma esplicito: se in
+   futuro qualcuno cambiasse il valore di base senza notare il legame
+   con l'animazione, il "to" resta comunque la fonte di verità per lo
+   stato finale corretto).
+   -------------------------------------------------------------------- */
+
+@keyframes step-appear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scan-step--appear {
+  /* Stato di riposo: quello che resta visibile se, sotto reduced-motion
+     (sezione 5 più sotto), l'animazione viene del tutto rimossa. */
+  opacity: 1;
+  animation: step-appear var(--duration-moderate) var(--ease-out) both;
+  animation-delay: calc(var(--step-index, 0) * 60ms);
+}
+
+
+/* ==========================================================================
+   5. PREFERS-REDUCED-MOTION — FALLBACK CONSOLIDATI
+   ==========================================================================
+   Unico blocco per tutti i fallback di movimento promessi nei file
+   precedenti (i relativi promemoria puntano tutti qui). Le DURATE
+   (--duration-*) sono già ridotte quasi a zero da variables.css sotto
+   questa stessa media query: per le transizioni "semplici" (colore del
+   gauge, width della progress bar, ecc.) questo basta da solo e non
+   richiede nulla in più qui. Le animazioni a CICLO INFINITO sono invece
+   il caso che richiede intervento esplicito in questo file: una durata
+   di 0.01ms su un "infinite" non è un'animazione "ridotta", è un
+   lampeggio ad altissima frequenza — per questo ciascuna riceve qui
+   sotto un trattamento dedicato, mai il semplice collasso della durata.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  /* --- status-pulse: niente pulsazione, resta solo il bagliore statico
+     (box-shadow) già dichiarato in components.css/screens.css sullo
+     stesso selettore — una proprietà indipendente da "animation",
+     quindi resta visibile senza bisogno di ridichiararla qui. --- */
+  .status-dot--active,
+  .status-dot--warning,
+  .status-dot--danger,
+  .scan-step--active .scan-step__dot {
+    animation: none;
+  }
+
+  /* --- loader-spinner: una rotazione ferma con un solo segmento di
+     bordo colorato diverso leggerebbe come un elemento "rotto", non
+     "in caricamento" (promemoria già fissato in screens.css). Al posto
+     della rotazione, un respiro di opacità lento e prevedibile
+     mantiene il segnale "sto ancora lavorando" senza movimento
+     direzionale. La durata è un valore letterale fisso (2400ms), NON
+     un token --duration-*: quei token sono già collassati a 0.01ms da
+     variables.css in questa stessa media query, il che vanificherebbe
+     proprio l'alternativa calma che si vuole offrire qui. --- */
+  .loader-spinner {
+    animation: loader-breathe 2400ms ease-in-out infinite;
+  }
+
+  /* --- comparsa sequenziale degli step: nessuno scorrimento verticale
+     né ritardo in cascata, gli step compaiono tutti insieme nel loro
+     stato finale. Rimuovendo "animation", torna a valere l'opacity:1
+     di base dichiarato sopra su .scan-step--appear (mai sovrascritto
+     da questa regola: qui si tocca solo "animation"). --- */
+  .scan-step--appear {
+    animation: none;
+  }
+}
+
+/*
+  @keyframes "loader-breathe": definito qui in fondo perché esiste
+  esclusivamente per il fallback appena sopra — non è mai referenziato
+  fuori da quella media query, a differenza di "status-pulse"/"spin"/
+  "step-appear" che sono comportamento di default.
+*/
+@keyframes loader-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
