@@ -84,6 +84,17 @@
    riusato con un'altra schermata staticamente visibile e nessuna
    inizializzazione esplicita), ma nel flusso attuale dell'app non si
    attiva mai: `currentScreenId` non è più `null` al primo utilizzo.
+
+   MODIFICA 7 LUGLIO 2026 — HEADER NASCOSTO FINO ALLA LANDING
+   --------------------------------------------------------------------
+   #app-header nasce ora con l'attributo [hidden] (era sempre visibile
+   fino a questa versione, comprese durante #screen-course — vedi il
+   banner in index.html per il dettaglio narrativo del cambio).
+   showScreen() lo rivela una tantum, con un fade-in dedicato
+   (HEADER_REVEAL_KEYFRAMES, sezione 5), nel momento esatto della prima
+   transizione reale della sequenza — non essendoci alcun percorso che
+   torni a #screen-course, non serve alcuna logica di
+   "ri-nascondimento" dell'header in seguito.
    ========================================================================== */
 
 // --------------------------------------------------------------------
@@ -112,9 +123,14 @@ for (const [id, element] of screens) {
   }
 }
 
+const appHeaderEl = document.getElementById('app-header');
 const headerStatusDot = document.getElementById('header-status-dot');
 const headerStatusText = document.getElementById('header-status-text');
 const liveAnnouncer = document.getElementById('live-announcer');
+
+if (!appHeaderEl) {
+  console.error('[uiController] elemento header non trovato: #app-header');
+}
 
 const STATUS_STATES = ['neutral', 'active', 'warning', 'danger', 'success'];
 
@@ -213,6 +229,23 @@ const FADE_IN_KEYFRAMES = [
   { opacity: 1, transform: 'translateY(0)' },
 ];
 
+/*
+  MODIFICA 7 luglio 2026 — RIVELAZIONE DELL'HEADER
+  ......................................................................
+  #app-header nasce con l'attributo [hidden] nel markup statico (vedi
+  il banner sopra la sezione header in index.html per il perché):
+  fino alla primissima transizione reale della sequenza, l'header non
+  deve mostrare alcun indizio del brand "Security Check". showScreen()
+  lo rivela con questo fade-in dedicato, separato da FADE_IN_KEYFRAMES
+  perché la direzione del movimento è opposta (l'header "scende" dalla
+  cima dello schermo, una schermata "sale" da sotto): stessa tecnica,
+  significante coerente con la posizione reale dell'elemento.
+*/
+const HEADER_REVEAL_KEYFRAMES = [
+  { opacity: 0, transform: 'translateY(-8px)' },
+  { opacity: 1, transform: 'translateY(0)' },
+];
+
 /**
  * Anima un elemento con la Web Animations API e risolve la Promise quando
  * l'animazione termina, avendo prima rilasciato il suo effetto
@@ -278,6 +311,22 @@ async function showScreen(targetId, options = {}) {
 
   const fadeDurationMs = getDurationMs('--duration-moderate', 320);
   const easing = getCssToken('--ease-standard', 'cubic-bezier(0.4, 0, 0.2, 1)');
+
+  // Rivelazione dell'header (una tantum): se è ancora nascosto — cioè
+  // siamo alla primissima transizione reale della sequenza, in uscita
+  // da #screen-course — lo si mostra qui, con un fade-in che si
+  // sovrappone DELIBERATAMENTE al crossfade della schermata qui sotto
+  // (nessun await sulla sua Promise): i due movimenti devono leggersi
+  // come un solo istante di rivelazione, non come due passaggi in
+  // sequenza. Non essendoci alcun percorso che torni a #screen-course,
+  // questo blocco non si attiva mai una seconda volta nella stessa
+  // sessione.
+  if (appHeaderEl && appHeaderEl.hidden) {
+    appHeaderEl.hidden = false;
+    if (!reducedMotion) {
+      animateElement(appHeaderEl, HEADER_REVEAL_KEYFRAMES, fadeDurationMs, easing);
+    }
+  }
 
   // Uscita della schermata precedente (se esiste). Alla prima chiamata in
   // assoluto (isInitialReveal) non c'è nulla da nascondere: la schermata
