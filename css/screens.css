@@ -226,11 +226,29 @@
    pagina — quel ruolo è ora di #screen-course — ma il primo a rivelare
    di cosa si tratta davvero). Le altre due icone di schermata
    (.icon--alert, .icon--reveal) condividono fra loro una dimensione più
-   piccola e coerente — vedi le rispettive sezioni. */
+   piccola e coerente — vedi le rispettive sezioni.
+
+   MODIFICA 7 luglio 2026 — TONO DI PRIMO IMPATTO, NON RASSICURANTE
+   ......................................................................
+   Colore passato da --color-accent (blu di brand, rassicurante) a
+   --color-warning: la primissima cosa mostrata dal vero tool deve
+   generare una lieve inquietudine, non fiducia — è la schermata che fa
+   da innesco emotivo per tutto ciò che segue, e un blu rassicurante in
+   questo punto preciso indebolirebbe l'impatto della scoperta
+   successiva. Stesso ragionamento per la sagoma stessa (vedi
+   #icon-shield-alert in index.html, sostituita a #icon-shield proprio
+   qui): stesso scudo di brand, ma con un punto esclamativo al posto
+   della spunta di sicurezza. Il blu resta il colore del sollievo,
+   riservato esclusivamente a .icon--reveal (sezione 6), dove la sagoma
+   torna a coincidere con lo scudo "originale" (spunta inclusa): stesso
+   significante, significato opposto affidato a colore E simbolo
+   interno insieme, mai al solo colore (WCAG 1.4.1). Contrasto comunque
+   ampio in entrambi i casi (--color-warning 8.6:1 su bg-app, già
+   verificato in variables.css): il cambio è di tono, non di leggibilità. */
 .icon--logo {
   width: 3.5rem;
   height: 3.5rem;
-  color: var(--color-accent);
+  color: var(--color-warning);
 }
 
 .landing-title {
@@ -568,8 +586,32 @@
   line-height: var(--leading-relaxed);
 }
 
+/*
+  MODIFICA 7 luglio 2026: ora contiene due figli impilati (bottone +
+  hint del conto alla rovescia, quest'ultimo visibile solo durante
+  l'attesa forzata — vedi main.js). flex column + gap, stesso pattern
+  già usato da .landing-loader in questo file, invece di affidarsi al
+  flusso a blocchi di default: con due figli di larghezza naturale
+  diversa (bottone vs testo del conto alla rovescia) lo shrink-to-fit
+  implicito di un contenitore block dentro align-items:center (vedi
+  nota di sezione 1) darebbe una larghezza ambigua, dipendente da quale
+  dei due testi risulta più lungo in un dato momento — un gap esplicito
+  rende la spaziatura indipendente da quel dettaglio.
+*/
 .reveal-actions {
   margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Visibile solo durante l'attesa forzata ([hidden] applicato/rimosso da
+   main.js): stesso trattamento tipografico discreto di .alert-hint/
+   .scan-status, coerente con gli altri testi di sistema secondari. */
+.reveal-wait-hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
 }
 
 
