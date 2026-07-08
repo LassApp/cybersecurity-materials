@@ -67,6 +67,23 @@
         usa uno screen reader), quindi l'unica via per rendere il
         punteggio realmente accessibile è esporlo come frase coerente
         su un contenitore comune.
+
+   CHANGELOG — RITMO DELLA RIVELAZIONE DEL RISCHIO, 8 LUGLIO 2026
+   --------------------------------------------------------------------
+   Due correzioni di ritmo narrativo, decise dopo un primo giro di test
+   dell'esperienza completa:
+     a) Introdotta SCAN_COMPLETE_PAUSE_MS (sezione 2): la pausa fra il
+        100% della barra di avanzamento e la navigazione verso
+        #screen-alert è passata da 400ms a 2000ms, per dare al momento
+        di passaggio — probabilmente il più teso dell'intera sequenza —
+        un vero respiro percettivo invece di un salto quasi immediato.
+        Resta 0 in modalità skip/reduced-motion, coerente con ogni
+        altro tempo di attesa di questo modulo.
+     b) computeRiskScore() (sezione 6) ora restituisce sempre un valore
+        sopra DANGER_THRESHOLD (range 89–97, era 68–96): il gauge deve
+        comparire SEMPRE nella variante rossa "danger", mai in quella
+        ambra "warning" — vedi il commento aggiornato su
+        DANGER_THRESHOLD per il dettaglio del cambio di intento.
    ========================================================================== */
 
 import { showScreen } from './uiController.js';
@@ -132,10 +149,29 @@ const SCAN_STEPS = [
  *  zero, per lasciare comunque una percezione di sequenza reale. */
 const FAST_STEP_MS = 90;
 
+/** Pausa (ms) fra il momento in cui la barra di avanzamento raggiunge
+ *  il 100% (testo di stato: "Analysis complete.") e la navigazione
+ *  verso #screen-alert — vedi l'uso in sezione 7. Applicata solo al
+ *  percorso normale: in modalità skip (o reduced-motion, che la
+ *  implica fin dall'inizio di runScan) resta 0, coerente con ogni
+ *  altro tempo di attesa di questo modulo, dove skip/reduced-motion
+ *  comprimono sempre i tempi piuttosto che allungarli.
+ *  MODIFICA 8 luglio 2026: alzata da 400ms a 2000ms per dare al
+ *  passaggio verso il gauge di rischio un vero respiro percettivo. */
+const SCAN_COMPLETE_PAUSE_MS = 2000;
+
 /** Punteggio (0–100) a partire dal quale il gauge passa dal tono di
  *  riposo "warning" al tono "danger" — vedi .alert-gauge--danger in
- *  components.css. Soglia alta di proposito: il tono di allarme più
- *  forte resta un esito non scontato, non la norma di ogni scansione. */
+ *  components.css.
+ *  MODIFICA 8 luglio 2026: la nota precedente qui diceva che una
+ *  soglia alta avrebbe reso il tono "danger" un esito non scontato,
+ *  non la norma di ogni scansione. Scelta ribaltata di proposito: vedi
+ *  il commento su computeRiskScore() più sotto, dove il range è stato
+ *  innalzato per superare SEMPRE questa soglia — l'anello rosso e lo
+ *  stato "Critical risk detected" devono comparire a ogni esecuzione,
+ *  non a intermittenza. La costante resta comunque il riferimento
+ *  singolo per quella soglia, utile se in futuro si volesse
+ *  reintrodurre variabilità. */
 const DANGER_THRESHOLD = 85;
 
 /** Circonferenza del gauge (2 × π × 52), identica al valore statico già
@@ -332,13 +368,25 @@ function resetScanUI() {
  * Calcola un punteggio di rischio simulato. Il progetto è didattico:
  * il punteggio non deriva da un'analisi reale del dispositivo (quella
  * vive in dashboardRenderer.js, come dati grezzi separati) ma da un
- * intervallo pensato per risultare quasi sempre "degno di attenzione"
- * — è il cuore della simulazione, l'intera schermata alert perde senso
- * didattico se il punteggio risultasse quasi sempre basso.
- * @returns {number} intero fra 68 e 96
+ * intervallo di valori scelto a tavolino.
+ *
+ * MODIFICA 8 luglio 2026: range innalzato da 68–96 a 89–97. Con
+ * l'intervallo precedente il punteggio poteva ricadere sotto
+ * DANGER_THRESHOLD (85) in una minoranza di casi, mostrando il gauge
+ * nella variante "warning" (ambra) invece che "danger" (rossa): un
+ * esito plausibile in astratto, ma non più coerente con l'obiettivo
+ * didattico attuale, per cui l'anello rosso e l'etichetta "Critical
+ * risk detected" devono comparire SEMPRE, a ogni esecuzione, mai a
+ * intermittenza casuale. Il limite inferiore (89) resta sopra soglia
+ * con un margine reale, non 85 esatto: un punteggio a ridosso del
+ * confine apparirebbe "casualmente" meno grave a un occhio attento.
+ * Resta comunque un intervallo, non un valore fisso: il numero esatto
+ * continua a variare a ogni scansione, cambia solo la fascia (ora
+ * sempre "danger").
+ * @returns {number} intero fra 89 e 97
  */
 function computeRiskScore() {
-  return randomInt(68, 96);
+  return randomInt(89, 97);
 }
 
 /**
@@ -466,7 +514,9 @@ async function runScan() {
   }
 
   setScanStatusText('Analysis complete.');
-  await wait(skipRequested ? 0 : 400); // breve pausa per far percepire il completamento prima del cambio schermata
+  // Pausa di lettura prima di navigare verso #screen-alert — vedi
+  // SCAN_COMPLETE_PAUSE_MS in sezione 2 per valore e changelog.
+  await wait(skipRequested ? 0 : SCAN_COMPLETE_PAUSE_MS);
 
   const riskScore = computeRiskScore();
   const severity = riskScore >= DANGER_THRESHOLD ? 'danger' : 'warning';
