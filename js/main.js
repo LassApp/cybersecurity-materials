@@ -9,8 +9,8 @@
    completa:
 
      course --(click "Apri il materiale")--> landing --(timer)--> scan
-       --(runScan)--> alert --(click|timeout)--> reveal --(click)-->
-       results --(click)--> fine lezione
+       --(runScan)--> alert --(click|timeout)--> reveal --(5s min. +
+       click)--> results --(click)--> fine lezione
 
    MODIFICA 6 LUGLIO 2026 — NUOVO PUNTO D'INGRESSO UNIVERSALE
    --------------------------------------------------------------------
@@ -30,6 +30,17 @@
    indipendentemente da come si è arrivati a quell'URL. È il volantino
    fisico/QR stampato a fornire il pretesto ("materiale del corso"), non
    il codice a doverlo riconoscere.
+
+   MODIFICA 7 LUGLIO 2026 — LETTURA MINIMA FORZATA SUL REVEAL
+   --------------------------------------------------------------------
+   Il passaggio reveal → results non è più un click libero in qualsiasi
+   istante: lockContinueButtonForReading() (sezione 7) disabilita
+   #btn-see-results per REVEAL_MIN_READ_MS (5 secondi fissi) subito dopo
+   la comparsa del reveal, mostrando un conto alla rovescia testuale.
+   Obiettivo puramente didattico: il testo del reveal è la rivelazione
+   della simulazione stessa, probabilmente il momento più importante
+   dell'intera lezione — merita un tempo minimo di lettura garantito,
+   non un click riflesso.
    ========================================================================== */
 
 import { showScreen, setHeaderStatus, announce, waitForAdvance } from './uiController.js';
@@ -49,6 +60,8 @@ const screenAlertEl = document.getElementById('screen-alert');
 const btnSeeResults = document.getElementById('btn-see-results');
 const btnContinueLesson = document.getElementById('btn-continue-lesson');
 const ctaSectionEl = document.querySelector('.cta-section');
+const revealWaitHintEl = document.getElementById('reveal-wait-hint');
+const revealWaitCountdownEl = document.getElementById('reveal-wait-countdown');
 
 for (const [name, el] of Object.entries({
   btnOpenCourseMaterial,
@@ -56,6 +69,8 @@ for (const [name, el] of Object.entries({
   btnSeeResults,
   btnContinueLesson,
   ctaSectionEl,
+  revealWaitHintEl,
+  revealWaitCountdownEl,
 })) {
   if (!el) {
     console.error(`[main] elemento non trovato in pagina: ${name}`);
@@ -108,6 +123,23 @@ const LANDING_DURATION_REDUCED_MS = 700;
  * comunque la via più rapida).
  */
 const ALERT_AUTO_ADVANCE_MS = 6000;
+
+/**
+ * Tempo minimo (ms) durante il quale #btn-see-results resta disabilitato
+ * dopo la comparsa della schermata reveal (vedi lockContinueButtonForReading
+ * più sotto). Il testo di quella schermata — la rivelazione della
+ * simulazione e il perché conta per la sicurezza dello studente — è
+ * probabilmente il messaggio più importante di tutta la lezione dal
+ * punto di vista didattico: un click riflesso troppo rapido per essere
+ * stato davvero letto ne vanificherebbe lo scopo. Valore fisso,
+ * DELIBERATAMENTE indipendente da prefers-reduced-motion: non è
+ * un'animazione comprimibile, è un tempo minimo di lettura — le due
+ * preferenze rispondono a esigenze di accessibilità diverse (motion
+ * sensitivity la prima, comprensione del contenuto la seconda), e
+ * comprimerlo per chi ha richiesto meno movimento non avrebbe alcuna
+ * reale giustificazione di accessibilità.
+ */
+const REVEAL_MIN_READ_MS = 5000;
 
 // --------------------------------------------------------------------
 // 4. STATO CONDIVISO FRA LE FASI
@@ -201,11 +233,55 @@ async function runScanPhase() {
 // --------------------------------------------------------------------
 
 /**
+ * Disabilita #btn-see-results per REVEAL_MIN_READ_MS a partire dal
+ * momento in cui la schermata reveal diventa visibile, mostrando un
+ * conto alla rovescia testuale in #reveal-wait-hint. Il conto alla
+ * rovescia NON usa aria-live: un aggiornamento al secondo — pur non
+ * "ad alta frequenza" come il count-up dei data point in
+ * scanEngine.js — resta comunque un dettaglio che uno screen reader
+ * non deve annunciare tick per tick (stessa convenzione già stabilita
+ * in animations.css). L'unico annuncio è la singola chiamata ad
+ * announce() qui sotto, quando il bottone torna disponibile.
+ * @returns {void}
+ */
+function lockContinueButtonForReading() {
+  if (!btnSeeResults) return;
+
+  btnSeeResults.disabled = true;
+  if (revealWaitHintEl) revealWaitHintEl.hidden = false;
+
+  let remainingSeconds = Math.ceil(REVEAL_MIN_READ_MS / 1000);
+
+  const updateCountdownText = () => {
+    if (!revealWaitCountdownEl) return;
+    revealWaitCountdownEl.textContent = remainingSeconds === 1
+      ? '1 secondo'
+      : `${remainingSeconds} secondi`;
+  };
+  updateCountdownText();
+
+  const intervalId = setInterval(() => {
+    remainingSeconds -= 1;
+
+    if (remainingSeconds <= 0) {
+      clearInterval(intervalId);
+      btnSeeResults.disabled = false;
+      if (revealWaitHintEl) revealWaitHintEl.hidden = true;
+      announce('You can now continue to your full report.');
+      return;
+    }
+
+    updateCountdownText();
+  }, 1000);
+}
+
+/**
  * Attende che l'utente clicchi in un punto qualunque della schermata
  * alert, oppure che scada il timeout automatico — la prima delle due
  * condizioni vince (comportamento già descritto in index.html e già
  * implementato come utility generica in uiController.js). Al termine,
- * transita verso il reveal.
+ * transita verso il reveal e avvia la lettura minima forzata del
+ * bottone di continuazione (vedi lockContinueButtonForReading sopra).
  * @returns {Promise<void>}
  */
 async function runAlertPhase() {
@@ -218,6 +294,8 @@ async function runAlertPhase() {
     statusLabel: 'Simulation complete',
     announceText: 'This was a training simulation. No data was collected.',
   });
+
+  lockContinueButtonForReading();
 }
 
 // --------------------------------------------------------------------
