@@ -63,11 +63,26 @@
        che ricordi lo scudo del brand "Security Check": l'inganno
        funziona solo se questa icona non anticipa in alcun modo cosa
        segue.
+
+       NUOVA ICONA (7 luglio 2026): #icon-shield-alert, variante dello
+       scudo di brand con un punto esclamativo al posto della spunta —
+       usata solo da #screen-landing (vedi sezione dedicata più sotto)
+       per dare alla primissima apparizione del vero brand un tono di
+       allerta anziché di rassicurazione, coerente con l'obiettivo
+       didattico di aumentare la tensione narrativa prima della
+       schermata di alert. Stessa sagoma di #icon-shield (identico
+       attributo "d"): resta riconoscibile come "lo stesso scudo",
+       cambia solo il simbolo interno.
        ================================================================== -->
   <svg style="display:none" aria-hidden="true" focusable="false">
     <symbol id="icon-shield" viewBox="0 0 24 24">
       <path fill="currentColor" d="M12 1.5l8 3.2v6.1c0 5.6-3.4 10.4-8 11.7-4.6-1.3-8-6.1-8-11.7V4.7l8-3.2z"/>
       <path fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8.5 12.5l2.5 2.5 5-6"/>
+    </symbol>
+    <symbol id="icon-shield-alert" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 1.5l8 3.2v6.1c0 5.6-3.4 10.4-8 11.7-4.6-1.3-8-6.1-8-11.7V4.7l8-3.2z"/>
+      <line x1="12" y1="7.5" x2="12" y2="13" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="12" cy="16.2" r="1.1" fill="#fff"/>
     </symbol>
     <symbol id="icon-warning" viewBox="0 0 24 24">
       <polygon fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" points="12,3 22,20 2,20"/>
@@ -148,18 +163,28 @@
 
     <!-- ================================================================
          HEADER APPLICAZIONE
-         Barra di brand persistente, visibile in ogni schermata, come
-         il "chrome" di una vera console di sicurezza enterprise.
+         Barra di brand persistente, visibile dalla vera landing in poi
+         (#screen-landing e successive), come il "chrome" di una vera
+         console di sicurezza enterprise.
 
-         NOTA (6 luglio 2026): resta visibile anche durante #screen-course.
-         Non è un errore: è deliberato. Un vero portale corsi non avrebbe
-         questo header — la sua presenza è un piccolo indizio "onesto"
-         lasciato a chi osserva con più attenzione, coerente con lo
-         spirito didattico del progetto (l'inganno non deve essere
-         tecnicamente impossibile da notare in anticipo, solo verosimile
-         a un primo sguardo distratto).
+         MODIFICA 7 luglio 2026 — NASCOSTO DURANTE #screen-course
+         Fino a questa versione l'header restava visibile anche sul finto
+         portale corso, come "indizio onesto" per chi osservava con più
+         attenzione (vedi la nota precedente, sostituita da questa). In
+         pratica, però, mostrare fin dal primissimo istante il brand
+         "Security Check" e lo stato "Initializing…" anticipava troppo
+         l'inganno, indebolendo la premessa narrativa del portale corso:
+         un vero portale didattico non avrebbe alcun elemento di chrome
+         relativo a un tool di sicurezza. L'header nasce quindi con
+         l'attributo [hidden] (stesso meccanismo già usato per le
+         schermate, vedi base.css) e viene rivelato da uiController.js
+         con un fade-in dedicato (HEADER_REVEAL_KEYFRAMES) nell'esatto
+         istante in cui l'utente lascia il portale corso — lo stesso
+         momento in cui #screen-landing mostra per la prima volta il
+         vero logo del brand, cosicché i due segnali si rinforzino a
+         vicenda invece che uno anticipi l'altro.
          ================================================================ -->
-    <header class="app-header">
+    <header class="app-header" id="app-header" hidden>
       <div class="app-header__brand">
         <svg class="icon icon--brand" aria-hidden="true" focusable="false"><use href="#icon-shield"></use></svg>
         <span class="app-header__brand-name">Security Check</span>
@@ -227,12 +252,18 @@
            #screen-course, sopra). landing-title è sceso da h1 a h2: il
            titolo di primissimo livello della pagina appartiene ora a
            #course-title, la vera "prima cosa vista" dall'utente.
+
+           MODIFICA 7 luglio 2026: icona e sottotitolo cambiati per dare
+           alla primissima apparizione del vero brand un tono di allerta
+           anziché di rassicurazione — vedi #icon-shield-alert nello
+           sprite più sopra e la nota su .icon--logo in screens.css per
+           il dettaglio del ragionamento.
            ============================================================== -->
       <section class="screen" id="screen-landing" lang="en" tabindex="-1" aria-labelledby="landing-title" hidden>
         <div class="landing">
-          <svg class="icon icon--logo" aria-hidden="true" focusable="false"><use href="#icon-shield"></use></svg>
+          <svg class="icon icon--logo" aria-hidden="true" focusable="false"><use href="#icon-shield-alert"></use></svg>
           <h2 class="landing-title" id="landing-title">Security Check</h2>
-          <p class="landing-subtitle">Secure Device Verification</p>
+          <p class="landing-subtitle">Your Device May Be Exposed</p>
           <div class="landing-loader">
             <span class="loader-spinner" aria-hidden="true"></span>
             <span class="loader-text">Initializing security engine…</span>
@@ -347,6 +378,15 @@
            l'inganno appena vissuto da OGNI utente (il finto portale
            corso — non solo da un eventuale ramo "arrivato dal QR", che
            non esiste più come caso separato: vedi banner di main.js).
+
+           MODIFICA 7 luglio 2026 — LETTURA MINIMA FORZATA: il bottone
+           "Vedi il report completo" nasce disabled e lo resta per
+           REVEAL_MIN_READ_MS (main.js, 5 secondi fissi, indipendenti da
+           prefers-reduced-motion: non è un'animazione da comprimere, è
+           un tempo minimo perché il messaggio qui sopra — probabilmente
+           il più importante di tutta la lezione — venga letto prima di
+           poter proseguire). #reveal-wait-hint mostra il conto alla
+           rovescia testuale, gestito interamente da main.js.
            ============================================================== -->
       <section class="screen" id="screen-reveal" tabindex="-1" aria-labelledby="reveal-title" hidden>
         <div class="reveal">
@@ -354,7 +394,8 @@
           <h2 class="reveal-title" id="reveal-title">Si è trattato di una simulazione didattica</h2>
           <p class="reveal-body">Quello che sembrava un documento del corso da aprire era in realtà l'avvio di una simulazione di analisi del dispositivo. Nessun dato è stato raccolto, salvato o trasmesso: l'intera analisi che hai appena visto si è svolta localmente, nel tuo browser. Continua per scoprire esattamente quali informazioni un sito web può ottenere in automatico — e perché questo conta per la tua sicurezza.</p>
           <div class="reveal-actions">
-            <button type="button" class="btn btn-primary" id="btn-see-results">Vedi il report completo</button>
+            <button type="button" class="btn btn-primary" id="btn-see-results" disabled aria-describedby="reveal-wait-hint">Vedi il report completo</button>
+            <p class="reveal-wait-hint" id="reveal-wait-hint" hidden>Potrai continuare tra <span id="reveal-wait-countdown">5 secondi</span></p>
           </div>
         </div>
       </section>
