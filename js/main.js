@@ -41,6 +41,17 @@
    della simulazione stessa, probabilmente il momento più importante
    dell'intera lezione — merita un tempo minimo di lettura garantito,
    non un click riflesso.
+
+   MODIFICA 8 LUGLIO 2026 — PIÙ TEMPO DI LETTURA SULL'ALERT
+   --------------------------------------------------------------------
+   ALERT_AUTO_ADVANCE_MS (sezione 3) è passato da 6000 a 11000ms
+   (+5 secondi): la schermata "Potential Risk Detected" resta visibile
+   più a lungo prima dell'avanzamento automatico verso il reveal,
+   lasciando più margine per leggere gauge e findings sintetiche. Il
+   click in un punto qualunque (o Invio da tastiera) resta comunque la
+   via più rapida per chi non ha bisogno di quel tempo extra — nessuna
+   modifica a waitForAdvance() in uiController.js, solo al timeout
+   passato da questo file.
    ========================================================================== */
 
 import { showScreen, setHeaderStatus, announce, waitForAdvance } from './uiController.js';
@@ -121,8 +132,10 @@ const LANDING_DURATION_REDUCED_MS = 700;
  * lungo da permettere la lettura del gauge e delle findings sintetiche,
  * coerente con l'hint testuale "Click anywhere to continue" (che resta
  * comunque la via più rapida).
+ * MODIFICA 8 luglio 2026: alzato da 6000 a 11000 (+5 secondi) — vedi
+ * banner introduttivo del file per il dettaglio.
  */
-const ALERT_AUTO_ADVANCE_MS = 6000;
+const ALERT_AUTO_ADVANCE_MS = 11000;
 
 /**
  * Tempo minimo (ms) durante il quale #btn-see-results resta disabilitato
