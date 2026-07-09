@@ -306,11 +306,16 @@ html {
    MODIFICA 7 luglio 2026: l'header (.app-header, #app-header) non è più
    visibile "sempre e comunque" — nasce nascosto ([hidden] nel markup
    statico di index.html) durante il solo #screen-course, il finto
-   portale corso: un vero portale non avrebbe questo chrome. Resta invece visibile da #screen-reveal in poi;
-   l'aspetto qui sotto (colori, spaziatura, sticky positioning) è
-   identico prima e dopo la rivelazione — cambia solo la sua presenza
-   nel DOM visibile, gestita da uiController.js (funzione showScreen),
-   mai una proprietà dichiarata in questo file.
+   portale corso: un vero portale non avrebbe questo chrome.
+   MODIFICA 9 luglio 2026: il momento della rivelazione è cambiato da
+   "ingresso in #screen-reveal" a "primissima transizione reale della
+   sequenza" (course→landing, il click su "Apri il materiale") — vedi
+   il changelog di uiController.js (funzione showScreen) per il
+   dettaglio del perché. Da quel punto in poi resta visibile per tutta
+   la sequenza; l'aspetto qui sotto (colori, spaziatura, sticky
+   positioning) è identico prima e dopo la rivelazione — cambia solo la
+   sua presenza nel DOM visibile, gestita da uiController.js, mai una
+   proprietà dichiarata in questo file.
 
    MODIFICA 9 luglio 2026: l'header non contiene più alcun elemento di
    brand (rimossi .app-header__brand/.icon--brand/.app-header__brand-name,
