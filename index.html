@@ -190,11 +190,23 @@
          didattico non ne avrebbe alcuno. L'header nasce quindi con
          l'attributo [hidden] (stesso meccanismo già usato per le
          schermate, vedi base.css) e viene rivelato da uiController.js
-         con un fade-in dedicato (HEADER_REVEAL_KEYFRAMES) nell'esatto
-         istante in cui viene mostrata #screen-reveal, il momento in cui
-         la simulazione viene esplicitamente svelata. Questa logica di
-         timing non è cambiata con la rimozione del logo: vale ancora,
-         semplicemente oggi rivela solo l'indicatore di stato.
+         con un fade-in dedicato (HEADER_REVEAL_KEYFRAMES).
+
+         MODIFICA 9 luglio 2026 — REVEAL ANTICIPATO AL CLICK "APRI IL
+         MATERIALE"
+         Fino a questa versione il fade-in scattava solo all'ingresso in
+         #screen-reveal, perché l'header conteneva ancora il blocco di
+         brand (icona+nome) e mostrarlo prima avrebbe fatto convivere il
+         logo rassicurante con lo scudo ambra "di allerta" ancora in
+         scena. Con il blocco di brand rimosso dall'header (vedi sopra:
+         resta solo l'indicatore di stato), quel conflitto narrativo non
+         esiste più — il pallino/testo di stato può quindi comparire già
+         alla primissima transizione reale della sequenza, cioè subito
+         dopo il click su "Apri il materiale" (course→landing): rinforza
+         la sensazione che un vero strumento si stia "accendendo" nel
+         momento esatto in cui l'utente compie la prima azione concreta,
+         invece di comparire già a metà sequenza. Logica di reveal
+         implementata in uiController.js (funzione showScreen).
          ================================================================ -->
     <header class="app-header" id="app-header" hidden>
       <div class="app-header__status">
