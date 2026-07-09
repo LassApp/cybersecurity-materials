@@ -95,10 +95,12 @@ html {
 
 /* Elementi sostituiti: dimensione intrinseca prevedibile e mai più
    larghi del proprio contenitore. Le dimensioni effettive delle singole
-   icone (.icon--logo, .icon--alert, .icon--reveal...) restano di
-   competenza di screens.css, dove vive il resto del layout di ciascuna
-   schermata; fa eccezione solo .icon--brand, l'unica icona che vive
-   nell'app shell — vedi sezione 4. */
+   icone (.icon--logo, .icon--alert, .icon--reveal, .icon--results-brand...)
+   restano di competenza di screens.css, dove vive il resto del layout
+   di ciascuna schermata. Nessuna icona vive più nell'app shell (sezione
+   4 più sotto): fino al 9 luglio 2026 .icon--brand era l'eccezione,
+   dichiarata qui perché l'unica icona nell'header persistente — rimossa
+   insieme al resto del blocco di brand, vedi banner della sezione 4. */
 img,
 svg {
   display: block;
@@ -310,6 +312,17 @@ html {
    nel DOM visibile, gestita da uiController.js (funzione showScreen),
    mai una proprietà dichiarata in questo file.
 
+   MODIFICA 9 luglio 2026: l'header non contiene più alcun elemento di
+   brand (rimossi .app-header__brand/.icon--brand/.app-header__brand-name,
+   presenti nella versione precedente di questo file) — solo l'indicatore
+   di stato (.app-header__status), per questo .app-header è passato da
+   justify-content:space-between a :flex-end, così l'unico figlio rimasto
+   resta ancorato a destra esattamente come prima (lo status non ha
+   cambiato posizione, è la sua controparte a sinistra che è sparita). La
+   vera identità di brand (icona + nome) vive ora esclusivamente in
+   .results-brand, componente di screens.css usato una sola volta nella
+   schermata finale #screen-results.
+
    Il contenuto interno di ciascun .screen — larghezza, centratura,
    padding — resta di competenza di screens.css: qui si stabilisce solo
    la relazione fra header e main.
@@ -331,7 +344,12 @@ html {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* MODIFICA 9 luglio 2026: era space-between, quando l'header aveva
+     due figli (brand a sinistra, stato a destra). Con .app-header__brand
+     rimosso (vedi banner della sezione più sopra), resta un solo figlio
+     — flex-end lo ancora comunque a destra, nella stessa posizione
+     visiva di sempre, invece di finire a sinistra per default. */
+  justify-content: flex-end;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-5);
   padding-top: calc(var(--space-3) + var(--safe-area-top));
@@ -339,53 +357,10 @@ html {
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-.app-header__brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0; /* permette il troncamento con ellissi del nome, vedi sotto */
-  color: var(--color-accent); /* colora l'icona (fill="currentColor") mantenendo il blu del brand */
-}
-
-/*
-  Unica eccezione al principio "nessuna dimensione di icona in questo
-  file": .icon--brand è l'unica variante dell'icona che vive nell'app
-  shell, quindi di competenza diretta di base.css. Le altre varianti
-  (.icon--logo, .icon--alert, .icon--reveal) appartengono a schermate
-  non ancora stilizzate e restano compito di screens.css. Specificità
-  volutamente bassa (una sola classe): se components.css avrà bisogno di
-  ridefinirla per coerenza con un eventuale sistema di icone condiviso,
-  potrà farlo senza conflitti, vincendo per ordine di caricamento.
-*/
-.icon--brand {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-}
-
-/*
-  overflow/text-overflow/white-space qui + min-width:0 sul genitore
-  sopra: su viewport molto stretti, se il nome del brand non trovasse
-  più spazio accanto all'indicatore di stato, tronca con ellissi invece
-  di andare a capo o sovrapporsi. Senza min-width:0 sul genitore flex,
-  questo figlio non si restringerebbe mai sotto la larghezza del proprio
-  contenuto, vanificando l'ellissi.
-*/
-.app-header__brand-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--text-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  letter-spacing: var(--tracking-tight);
-}
-
 .app-header__status {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex-shrink: 0; /* se lo spazio scarseggia, a restringersi è il brand (sopra), mai lo stato corrente */
 }
 
 /*
