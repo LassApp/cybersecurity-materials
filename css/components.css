@@ -14,8 +14,9 @@
    - il layout interno di ciascuna schermata, la centratura, le larghezze
      massime e il numero di colonne responsive di .dashboard-grid oltre la
      singola colonna di base → screens.css;
-   - le dimensioni delle varianti di icona diverse da .icon--brand, cioè
-     .icon--logo/--alert/--reveal (già stabilito in base.css) → screens.css;
+   - le dimensioni delle varianti di icona diverse da .icon--dashboard-card/
+     --finding/--scan-step (quelle già qui sotto), cioè .icon--logo/--alert/
+     --reveal/--course/--results-brand → screens.css;
    - gli elementi di .scan-steps (i singoli passi della scansione) e di
      .explanation-list (l'elenco puntato nella spiegazione didattica
      finale): non erano fra i componenti concordati per questa fase,
@@ -33,10 +34,10 @@
    -----------------------------------------
    Da index.html emergono già due schemi distinti, qui resi espliciti per
    restare coerenti anche nei prossimi file:
-   - trattino DOPPIO (es. .icon--brand, già in index.html): alternative
-     reciprocamente esclusive dello stesso aspetto — un elemento ha
-     sempre esattamente UNA fra le varianti disponibili (o è l'icona
-     brand o è l'icona logo, mai entrambe).
+   - trattino DOPPIO (es. .icon--logo/--alert/--reveal, già in index.html):
+     alternative reciprocamente esclusive dello stesso aspetto — un
+     elemento ha sempre esattamente UNA fra le varianti disponibili (o è
+     l'icona di landing o quella di alert, mai entrambe).
    - trattino SINGOLO (es. .btn-primary, .btn-large, già in index.html):
      assi ortogonali e liberamente combinabili sulla stessa classe base
      (colore e dimensione di un bottone sono scelte indipendenti,
