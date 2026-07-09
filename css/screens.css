@@ -9,8 +9,10 @@
         delle 6 schermate (.course, .landing, .scan, .alert, .reveal,
         .results)
      3) le varianti di icona non ancora dimensionate altrove — .icon--course,
-        .icon--logo, .icon--alert, .icon--reveal (.icon--brand è in base.css,
-        le icone dentro componenti riutilizzabili sono già in components.css)
+        .icon--logo, .icon--alert, .icon--reveal, .icon--results-brand (le
+        icone dentro componenti riutilizzabili sono già in components.css;
+        base.css, dal 9 luglio 2026, non possiede più alcuna icona propria
+        — vedi il changelog in quel file sulla rimozione di .icon--brand)
      4) i componenti "locali a una sola schermata", esplicitamente esclusi
         da components.css in quel file: .course-file-card (che riusa però
         .dashboard-card di components.css per il proprio contenuto interno,
@@ -633,6 +635,47 @@
 
 .results-header {
   text-align: center;
+}
+
+/*
+  .results-brand — MODIFICA 9 luglio 2026
+  ......................................................................
+  Unica apparizione, in tutta l'esperienza, della coppia icona scudo +
+  nome prodotto: rimossa dalla top bar persistente (vedi il banner sopra
+  <header id="app-header"> in index.html), vive ora esclusivamente qui,
+  come intestazione del vero report finale. display:flex + justify-
+  content:center è necessario nonostante .results-header sia già
+  text-align:center: quella proprietà centra solo contenuto inline/
+  testo, non le righe di un contenitore flex, che senza questa
+  dichiarazione partirebbe allineato a sinistra.
+  Colore --color-accent (lo stesso blu già usato da .icon--reveal per lo
+  stesso significante "brand/rassicurazione"): qui l'icona diventa un
+  elemento currentColor, il nome accanto resta invece sul token neutro
+  --color-text-primary — stessa scelta già fatta in .app-header__brand
+  prima della sua rimozione (icona colorata, nome no), per non
+  colorare un intero titolo di un blu che negli altri titoli dell'app
+  non compare mai.
+*/
+.results-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.icon--results-brand {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+.results-brand__name {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
 }
 
 /* max-width più stretto della card wide che lo contiene: un paragrafo
