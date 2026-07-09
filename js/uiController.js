@@ -312,15 +312,6 @@ async function showScreen(targetId, options = {}) {
   const fadeDurationMs = getDurationMs('--duration-moderate', 320);
   const easing = getCssToken('--ease-standard', 'cubic-bezier(0.4, 0, 0.2, 1)');
 
-  // Rivelazione dell'header (una tantum): se è ancora nascosto — cioè
-  // siamo alla primissima transizione reale della sequenza, in uscita
-  // da #screen-course — lo si mostra qui, con un fade-in che si
-  // sovrappone DELIBERATAMENTE al crossfade della schermata qui sotto
-  // (nessun await sulla sua Promise): i due movimenti devono leggersi
-  // come un solo istante di rivelazione, non come due passaggi in
-  // sequenza. Non essendoci alcun percorso che torni a #screen-course,
-  // questo blocco non si attiva mai una seconda volta nella stessa
-  // sessione.
   // Rivelazione dell'header (una tantum): legata specificamente
   // all'ingresso in #screen-reveal, non più alla prima transizione in
   // assoluto (course→landing). È quello il momento narrativo in cui il
