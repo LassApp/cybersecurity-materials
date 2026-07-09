@@ -163,30 +163,40 @@
 
     <!-- ================================================================
          HEADER APPLICAZIONE
-         Barra di brand persistente, visibile dalla vera landing in poi
-         (#screen-landing e successive), come il "chrome" di una vera
-         console di sicurezza enterprise.
+         Barra di STATO persistente, non più di brand: mostra solo
+         l'indicatore funzionale (pallino + testo) allineato a destra,
+         come il minimo "chrome" di una vera console di sicurezza
+         enterprise che comunica cosa sta facendo, non chi è.
+
+         MODIFICA 9 luglio 2026 — LOGO RIMOSSO DALLA TOP BAR
+         Fino a questa versione l'header conteneva anche un blocco di
+         brand (.app-header__brand: icona scudo + "Security Check"),
+         rivelato insieme allo stato al momento di #screen-reveal — vedi
+         il changelog qui sotto per quella logica di timing, che resta
+         invariata. Quel blocco è stato rimosso: la vera identità del
+         prodotto compare ora UNA SOLA VOLTA in tutta l'esperienza,
+         nella schermata finale (#screen-results, vedi .results-brand
+         in quella sezione più sotto) — un impatto concentrato in un
+         unico punto anziché sparso anche su un elemento di chrome
+         secondario come questa barra, che resta persistente ma
+         volutamente anonima: comunica solo "analisi in corso / stato
+         X", mai il nome del prodotto.
 
          MODIFICA 7 luglio 2026 — NASCOSTO DURANTE #screen-course
-         Fino a questa versione l'header restava visibile anche sul finto
-         portale corso, come "indizio onesto" per chi osservava con più
-         attenzione (vedi la nota precedente, sostituita da questa). In
-         pratica, però, mostrare fin dal primissimo istante il brand
-         "Security Check" e lo stato "Initializing…" anticipava troppo
-         l'inganno, indebolendo la premessa narrativa del portale corso:
-         un vero portale didattico non avrebbe alcun elemento di chrome
-         relativo a un tool di sicurezza. L'header nasce quindi con
+         Fino a quella versione l'header restava visibile anche sul
+         finto portale corso. In pratica, mostrare fin dal primissimo
+         istante qualunque elemento di chrome relativo a un tool di
+         sicurezza avrebbe anticipato troppo l'inganno: un vero portale
+         didattico non ne avrebbe alcuno. L'header nasce quindi con
          l'attributo [hidden] (stesso meccanismo già usato per le
-         schermate, vedi base.css) e viene rivelato da uiController.js con un fade-in dedicato (HEADER_REVEAL_KEYFRAMES) nell'esatto istante in cui viene mostrata #screen-reveal, il momento in cui la simulazione viene esplicitamente svelata — lo stesso
-         momento in cui #screen-landing mostra per la prima volta il
-         vero logo del brand, cosicché i due segnali si rinforzino a
-         vicenda invece che uno anticipi l'altro.
+         schermate, vedi base.css) e viene rivelato da uiController.js
+         con un fade-in dedicato (HEADER_REVEAL_KEYFRAMES) nell'esatto
+         istante in cui viene mostrata #screen-reveal, il momento in cui
+         la simulazione viene esplicitamente svelata. Questa logica di
+         timing non è cambiata con la rimozione del logo: vale ancora,
+         semplicemente oggi rivela solo l'indicatore di stato.
          ================================================================ -->
     <header class="app-header" id="app-header" hidden>
-      <div class="app-header__brand">
-        <svg class="icon icon--brand" aria-hidden="true" focusable="false"><use href="#icon-shield"></use></svg>
-        <span class="app-header__brand-name">Security Check</span>
-      </div>
       <div class="app-header__status">
         <span class="status-dot" id="header-status-dot"></span>
         <span class="status-text" id="header-status-text" lang="en">Initializing…</span>
@@ -278,8 +288,8 @@
       <section class="screen" id="screen-scan" lang="en" tabindex="-1" aria-labelledby="scan-title" hidden>
         <div class="scan">
           <div class="scan-header">
-            <h2 class="scan-title" id="scan-title">Assessing Device Security Posture</h2>
-            <p class="scan-subtitle">Multiple identification vectors detected. Analysis in progress…</p>
+            <h2 class="scan-title" id="scan-title">Running Security Diagnostics</h2>
+            <p class="scan-subtitle">Please wait while we analyze this device's configuration.</p>
           </div>
 
           <div class="scan-progress">
@@ -407,6 +417,23 @@
         <div class="results">
 
           <div class="results-header">
+            <!--
+              MODIFICA 9 luglio 2026 — VERA IDENTITÀ DI BRAND, UNA SOLA
+              VOLTA IN TUTTA L'ESPERIENZA: rimossa dalla top bar
+              persistente (vedi il banner sopra <header id="app-header">
+              per il dettaglio), la coppia icona scudo + "Security
+              Check" compare qui, e solo qui — l'intestazione del vero
+              report finale, l'unico momento in cui il nome del prodotto
+              è affiancato ai dati raccolti. Riusa #icon-shield, già
+              definita nello sprite SVG (nessuna nuova icona da
+              certificare per il contrasto) e lo stesso --color-accent
+              già usato da .icon--reveal: stesso significante "brand" in
+              tutta l'app, mai duplicato in più punti.
+            -->
+            <div class="results-brand">
+              <svg class="icon icon--results-brand" aria-hidden="true" focusable="false"><use href="#icon-shield"></use></svg>
+              <span class="results-brand__name">Security Check</span>
+            </div>
             <h2 class="results-title" id="results-title">Il tuo Report di Sicurezza</h2>
             <p class="results-intro">Qui sotto trovi tutte le informazioni che questa pagina ha potuto leggere automaticamente dal tuo browser, senza che tu dovessi autorizzare nulla. Nessun dato è stato salvato, copiato o inviato: tutto ciò che vedi è stato elaborato esclusivamente sul tuo dispositivo.</p>
           </div>
