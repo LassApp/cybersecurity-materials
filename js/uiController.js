@@ -321,7 +321,16 @@ async function showScreen(targetId, options = {}) {
   // sequenza. Non essendoci alcun percorso che torni a #screen-course,
   // questo blocco non si attiva mai una seconda volta nella stessa
   // sessione.
-  if (appHeaderEl && appHeaderEl.hidden) {
+  // Rivelazione dell'header (una tantum): legata specificamente
+  // all'ingresso in #screen-reveal, non più alla prima transizione in
+  // assoluto (course→landing). È quello il momento narrativo in cui il
+  // vero brand "Security Check" può comparire, perché coincide con la
+  // rivelazione esplicita "è stata una simulazione". Mostrarlo prima
+  // tradiva l'inganno con troppo anticipo: lo studente vedeva il logo
+  // blu (rassicurante) nell'header mentre la schermata centrale
+  // mostrava ancora lo scudo ambra "di allerta" — due segnali di brand
+  // disallineati nello stesso istante, uno tranquillizzante e uno no.
+  if (appHeaderEl && appHeaderEl.hidden && targetId === 'screen-reveal') {
     appHeaderEl.hidden = false;
     if (!reducedMotion) {
       animateElement(appHeaderEl, HEADER_REVEAL_KEYFRAMES, fadeDurationMs, easing);
