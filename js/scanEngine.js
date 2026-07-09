@@ -141,7 +141,7 @@ const SCAN_STEPS = [
   { label: 'Detecting installed plugins and extensions', durationMs: 850, dataPointsRange: [2, 5] },
   { label: 'Analyzing display and hardware parameters', durationMs: 950, dataPointsRange: [4, 8] },
   { label: 'Evaluating time zone and language settings', durationMs: 800, dataPointsRange: [2, 4] },
-  { label: 'Cross-referencing device fingerprint patterns', durationMs: 1200, dataPointsRange: [6, 11] },
+  { label: 'Cross-referencing exposure against known tracking patterns', durationMs: 1200, dataPointsRange: [6, 11] },
   { label: 'Calculating identification confidence score', durationMs: 900, dataPointsRange: [3, 7] },
 ];
 
