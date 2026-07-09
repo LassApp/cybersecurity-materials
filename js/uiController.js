@@ -312,16 +312,24 @@ async function showScreen(targetId, options = {}) {
   const fadeDurationMs = getDurationMs('--duration-moderate', 320);
   const easing = getCssToken('--ease-standard', 'cubic-bezier(0.4, 0, 0.2, 1)');
 
-  // Rivelazione dell'header (una tantum): legata specificamente
-  // all'ingresso in #screen-reveal, non più alla prima transizione in
-  // assoluto (course→landing). È quello il momento narrativo in cui il
-  // vero brand "Security Check" può comparire, perché coincide con la
-  // rivelazione esplicita "è stata una simulazione". Mostrarlo prima
-  // tradiva l'inganno con troppo anticipo: lo studente vedeva il logo
-  // blu (rassicurante) nell'header mentre la schermata centrale
-  // mostrava ancora lo scudo ambra "di allerta" — due segnali di brand
-  // disallineati nello stesso istante, uno tranquillizzante e uno no.
-  if (appHeaderEl && appHeaderEl.hidden && targetId === 'screen-reveal') {
+  // Rivelazione dell'header (una tantum): torna a coincidere con la
+  // primissima transizione reale della sequenza (course→landing, il
+  // click su "Apri il materiale"), non più con l'ingresso in
+  // #screen-reveal.
+  // MODIFICA 9 luglio 2026 (nuova motivazione): il ritardo fino al
+  // reveal era giustificato SOLO quando l'header conteneva ancora il
+  // proprio blocco di brand (.app-header__brand, icona+nome) — mostrarlo
+  // prima avrebbe fatto convivere un logo blu rassicurante con lo scudo
+  // ambra "di allerta" ancora in scena, due segnali disallineati nello
+  // stesso istante. Da quando quel blocco è stato rimosso dall'header
+  // (vedi banner in base.css/index.html: la vera identità di brand vive
+  // ora solo in .results-brand, nella schermata finale), l'header
+  // rivela unicamente l'indicatore di stato — nessun logo, quindi nessun
+  // conflitto narrativo da evitare. Non c'è più motivo di ritardarne la
+  // comparsa: mostrarlo già al primo passo reale della sequenza
+  // rinforza anzi la sensazione di un vero tool che si sta "accendendo"
+  // nel momento in cui l'utente compie la prima azione concreta.
+  if (appHeaderEl && appHeaderEl.hidden) {
     appHeaderEl.hidden = false;
     if (!reducedMotion) {
       animateElement(appHeaderEl, HEADER_REVEAL_KEYFRAMES, fadeDurationMs, easing);
