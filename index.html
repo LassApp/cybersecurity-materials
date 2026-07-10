@@ -10,6 +10,26 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%233D6FE0' d='M12 1.5l8 3.2v6.1c0 5.6-3.4 10.4-8 11.7-4.6-1.3-8-6.1-8-11.7V4.7l8-3.2z'/%3E%3C/svg%3E">
 
   <!--
+    PWA — MANIFEST E ICONE (aggiunto 9 luglio 2026)
+    ....................................................................
+    Rende l'app installabile (icona sulla home screen, avvio a schermo
+    intero senza barra degli indirizzi): un vero tool di sicurezza
+    enterprise è spesso un'app installata, non solo una pagina — un
+    ulteriore tassello di realismo.
+    SCELTA DELIBERATA SULL'ICONA: le icone referenziate qui (e in
+    manifest.json) NON sono lo scudo di brand "Security Check", ma la
+    stessa icona neutra del documento già usata in #screen-course. Il
+    prompt di installazione e l'icona sulla home screen sono molto più
+    prominenti e permanenti di un favicon in una tab: mostrare lo scudo
+    lì tradirebbe l'inganno prima ancora che lo studente arrivi a
+    cliccare "Apri il materiale" — la stessa logica già alla base della
+    scelta di colore/icona di #screen-course in index.html/screens.css,
+    qui semplicemente estesa anche al livello "app installata".
+  -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <!--
     Ordine di caricamento dei fogli di stile (l'ordine è intenzionale):
     1) variables.css   -> design tokens (colori, spaziature, tipografia)
     2) base.css        -> reset e stili di base degli elementi HTML
@@ -156,6 +176,19 @@
       <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M7.2 13a7.6 7.6 0 0 1 9.6 0"/>
       <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M10.4 16.4a3.4 3.4 0 0 1 3.2 0"/>
       <circle cx="12" cy="19" r="1" fill="currentColor"/>
+    </symbol>
+    <!--
+      NUOVA ICONA (9 luglio 2026): #icon-signal, per la card "Velocità
+      di connessione stimata" in #dashboard-grid (dashboardRenderer.js,
+      Network Information API). Tre barre crescenti, lo stesso
+      linguaggio visivo universale dell'indicatore di segnale — distinta
+      da #icon-connection qui sopra (che comunica solo lo stato binario
+      online/offline) perché qui il concetto è "quanto", non "se".
+    -->
+    <symbol id="icon-signal" viewBox="0 0 24 24">
+      <rect x="4" y="15" width="3.2" height="5" rx="0.6" fill="currentColor"/>
+      <rect x="10.4" y="11" width="3.2" height="9" rx="0.6" fill="currentColor" opacity="0.7"/>
+      <rect x="16.8" y="6" width="3.2" height="14" rx="0.6" fill="currentColor" opacity="0.4"/>
     </symbol>
   </svg>
 
@@ -509,5 +542,39 @@
     tramite "import" ES6 — nessun bundler necessario.
   -->
   <script type="module" src="js/main.js"></script>
+
+  <!--
+    REGISTRAZIONE SERVICE WORKER (aggiunta 9 luglio 2026)
+    ....................................................................
+    Volutamente uno script separato, non-module, invece di una riga
+    aggiunta a main.js: quel file ha un ambito già esplicitamente
+    documentato nel proprio banner introduttivo ("orchestrazione
+    dell'intera sequenza applicativa narrativa"), a cui la registrazione
+    del service worker — una responsabilità infrastrutturale, non
+    narrativa — non appartiene concettualmente.
+    Il controllo "in navigator" prima di registrare è necessario perché
+    l'API non è garantita ovunque (es. contesti non sicuri: il service
+    worker richiede HTTPS o localhost — GitHub Pages serve sempre in
+    HTTPS, quindi in produzione la condizione è sempre vera). L'ascolto
+    dell'evento "load" (anziché la registrazione immediata) evita che
+    l'installazione del service worker competa per banda/CPU con il
+    caricamento della primissima schermata, che deve restare la
+    priorità assoluta.
+  -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((error) => {
+          // Un fallimento di registrazione (es. file assente su un
+          // deploy non aggiornato) non deve mai bloccare l'esperienza
+          // principale: l'app resta perfettamente funzionante anche
+          // senza service worker, che qui serve solo da migliorìa
+          // progressiva (installabilità, avvio più rapido su reti
+          // lente), mai da requisito.
+          console.warn('[pwa] registrazione service worker non riuscita:', error);
+        });
+      });
+    }
+  </script>
 </body>
 </html>
