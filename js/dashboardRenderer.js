@@ -23,7 +23,7 @@
    2) renderAlertFindings()   — popola la lista sintetica #alert-findings
                                  nella schermata alert (poche voci, le più
                                  "d'impatto").
-   3) renderResultsDashboard()— popola in un solo colpo le 10 card di
+   3) renderResultsDashboard()— popola in un solo colpo le 11 card di
                                  #dashboard-grid, la lista completa
                                  #findings-list e i due placeholder
                                  inline della spiegazione didattica
@@ -36,7 +36,7 @@
                                  renderAlertFindings (che vive in un
                                  momento distinto della sequenza).
 
-   DATA POINT COPERTI (aggiornato — seconda passata)
+   DATA POINT COPERTI (aggiornato — terza passata)
    --------------------------------------------------------------------
    Identità/software : browser + versione, sistema operativo.
    Display           : risoluzione schermo, dimensione finestra
@@ -44,9 +44,20 @@
    Hardware          : core CPU logici, RAM stimata (deviceMemory),
                         tipo di dispositivo (desktop/tablet/smartphone)
                         e supporto touch.
-   Rete/tempo        : stato online, fuso orario, ora locale.
+   Rete/tempo        : stato online, tipo/velocità di connessione
+                        stimata (Network Information API), fuso
+                        orario, ora locale.
    Preferenze/privacy: lingue, tema chiaro/scuro, reduced motion,
                         Do Not Track, cookie abilitati.
+
+   TERZA PASSATA — 9 luglio 2026: aggiunta la velocità di connessione
+   stimata (readConnectionInfo(), sezione 3). Stesso principio di
+   onestà già stabilito per deviceMemory: la Network Information API
+   (navigator.connection) è implementata solo su browser Chromium
+   (Firefox e Safari non la espongono, scelta anti-fingerprinting delle
+   rispettive organizzazioni) — quindi null è un esito reale e
+   frequente, mostrato come "Non rilevabile (solo Chromium)", mai un
+   valore indovinato.
 
    COSA QUESTO MODULO NON FA
    --------------------------------------------------------------------
@@ -177,6 +188,37 @@ function readDeviceMemoryGB() {
 }
 
 /**
+ * Legge navigator.connection (Network Information API): tipo di
+ * connessione stimato ("4g", "3g", "2g", "slow-2g"), velocità di
+ * downlink stimata in Mbps e se l'utente ha attivato il risparmio dati
+ * a livello di sistema/browser. Come deviceMemory, è un'API
+ * implementata SOLO su browser Chromium — Firefox e Safari non la
+ * espongono affatto — quindi `null` è un esito reale e frequente, non
+ * un errore. I tre valori vanno sempre trattati come un'unica unità
+ * (nessuno dei tre ha senso mostrato isolatamente se manca il resto),
+ * per questo la funzione restituisce un solo oggetto o null, mai
+ * proprietà singole opzionali.
+ * @returns {{effectiveType: string, downlinkMbps: number, saveData: boolean}|null}
+ */
+function readConnectionInfo() {
+  // Vendor prefix legacy (webkit/moz) mantenuto per completezza: sui
+  // browser che oggi implementano l'API, è comunque "connection" senza
+  // prefisso a essere popolato, ma un fallback esplicito non costa nulla.
+  const connection = navigator.connection
+    || navigator.webkitConnection
+    || navigator.mozConnection
+    || null;
+  if (!connection || typeof connection.effectiveType !== 'string') {
+    return null;
+  }
+  return {
+    effectiveType: connection.effectiveType,
+    downlinkMbps: typeof connection.downlink === 'number' ? connection.downlink : null,
+    saveData: Boolean(connection.saveData),
+  };
+}
+
+/**
  * Rileva il supporto touch combinando i due segnali standard
  * disponibili: nessuno dei due, da solo, è affidabile in ogni
  * configurazione (alcuni laptop Windows con schermo touch ma mouse
@@ -269,6 +311,7 @@ function collectDeviceData() {
 
   const touchSupport = detectTouchSupport();
   const deviceType = classifyDeviceType(ua, touchSupport);
+  const connectionInfo = readConnectionInfo();
 
   let timezoneName = 'Non rilevabile';
   try {
@@ -316,6 +359,7 @@ function collectDeviceData() {
     deviceMemoryGB,
     touchSupport,
     deviceType,
+    connectionInfo,
     timezoneName,
     utcOffset,
     localTime,
@@ -467,6 +511,13 @@ function buildFindings(data) {
     });
   }
 
+  if (data.connectionInfo !== null) {
+    findings.push({
+      severity: 'warning',
+      text: `Il browser espone anche una stima del tipo e della velocità della tua connessione (${data.connectionInfo.effectiveType.toUpperCase()}${data.connectionInfo.downlinkMbps !== null ? `, ~${data.connectionInfo.downlinkMbps} Mbps` : ''}): un ulteriore dettaglio che si combina con gli altri nell'impronta del dispositivo.`,
+    });
+  }
+
   // Voci potenzialmente "success": dipendono da impostazioni che
   // l'utente potrebbe già avere attivo. Vengono aggiunte in coda
   // perché rappresentano una buona notizia, non un rischio da
@@ -518,7 +569,7 @@ function renderAlertFindings(data) {
 
 /**
  * Popola in un solo colpo tutto il contenuto "a dati reali" della
- * schermata risultati: le 10 card di #dashboard-grid, la lista
+ * schermata risultati: le 11 card di #dashboard-grid, la lista
  * completa #findings-list e i due placeholder inline della spiegazione
  * didattica (#explain-browser-name/#explain-os-name). Va chiamata da
  * main.js nel momento in cui #screen-results sta per diventare
@@ -526,7 +577,7 @@ function renderAlertFindings(data) {
  * @param {object} data - oggetto restituito da collectDeviceData()
  */
 function renderResultsDashboard(data) {
-  // --- 10 card della dashboard --------------------------------------
+  // --- 11 card della dashboard --------------------------------------
   if (dashboardGridEl) {
     const cards = [
       {
@@ -559,6 +610,13 @@ function renderResultsDashboard(data) {
         iconId: 'icon-connection',
         label: 'Connessione',
         value: data.isOnline === null ? 'Non rilevabile' : (data.isOnline ? 'Online' : 'Offline'),
+      },
+      {
+        iconId: 'icon-signal',
+        label: 'Velocità di connessione stimata',
+        value: data.connectionInfo === null
+          ? 'Non rilevabile (solo Chromium)'
+          : `${data.connectionInfo.effectiveType.toUpperCase()}${data.connectionInfo.downlinkMbps !== null ? ` · ~${data.connectionInfo.downlinkMbps} Mbps` : ''}${data.connectionInfo.saveData ? ' · risparmio dati attivo' : ''}`,
       },
       {
         iconId: 'icon-network',
