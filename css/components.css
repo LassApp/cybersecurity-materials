@@ -520,21 +520,23 @@
        </div>
      </div>
 
-   Mappatura fra le 10 card e le icone dello sprite di index.html — le
+   Mappatura fra le 11 card e le icone dello sprite di index.html — le
    prime 7 riusano icone già presenti dalla prima versione del modulo,
-   le ultime 3 (memoria, tipo dispositivo, connessione) sono state
-   aggiunte allo sprite in un secondo passaggio, stesso stile line-art
-   delle altre:
-     Browser             → #icon-browser
-     Sistema operativo   → #icon-os
-     Risoluzione schermo → #icon-display
-     CPU / core          → #icon-cpu
-     Memoria stimata     → #icon-memory
-     Tipo di dispositivo → #icon-device
-     Connessione         → #icon-connection
-     Fuso orario         → #icon-network
-     Ora locale          → #icon-clock
-     Preferenze          → #icon-sliders
+   le successive 3 (memoria, tipo dispositivo, connessione) sono state
+   aggiunte allo sprite in un secondo passaggio, l'ultima (velocità di
+   connessione) in un terzo passaggio (9 luglio 2026) — sempre stesso
+   stile line-art delle altre:
+     Browser                       → #icon-browser
+     Sistema operativo             → #icon-os
+     Risoluzione schermo           → #icon-display
+     CPU / core                    → #icon-cpu
+     Memoria stimata                → #icon-memory
+     Tipo di dispositivo            → #icon-device
+     Connessione                    → #icon-connection
+     Velocità di connessione stimata → #icon-signal
+     Fuso orario                    → #icon-network
+     Ora locale                     → #icon-clock
+     Preferenze                     → #icon-sliders
 
    A differenza delle voci di rischio, le card non hanno varianti di
    severità: mostrano un dato di fatto rilevato dal browser, non
