@@ -328,14 +328,49 @@ html {
    .results-brand, componente di screens.css usato una sola volta nella
    schermata finale #screen-results.
 
+   FIX 10 luglio 2026 — .app USAVA min-height INVECE DI height
+   --------------------------------------------------------------------
+   Bug reale, non solo teorico: su #screen-results (l'unica schermata il
+   cui contenuto supera quasi sempre l'altezza del viewport) la rotellina
+   del mouse e le freccette direzionali non scrollavano affatto — restava
+   possibile scrollare solo trascinando la scrollbar o selezionando testo
+   fino al margine. Diagnosticato riproducendo il bug con un browser reale
+   (Playwright/Chromium) e misurando le altezze effettive: .app-main
+   MAI andava realmente in overflow al proprio interno, perché il
+   contenitore .app usava min-height:100dvh (non height). Per un
+   contenitore flex-column, min-height da solo NON impedisce a un figlio
+   con flex:1 1 auto e flex-basis:auto (qui, .app-main) di crescere
+   quanto il proprio contenuto richiede quando quel contenuto supera lo
+   spazio disponibile: .app stesso si allungava fino a 3000+ px (invece
+   di restare fissato all'altezza del viewport) e a scrollare finiva per
+   essere l'intero documento HTML, non più .app-main — un contenitore di
+   scroll diverso da quello per cui era stato scritto sia
+   overflow-y:auto sia overscroll-behavior-y:contain qui sotto, il che
+   nella pratica (browser reali, non l'ambiente di test) impediva la
+   rotellina/tastiera di funzionare pur lasciando intatta la sola
+   scrollbar nativa del documento. La correzione è passare da min-height
+   a height (vero, non minimo): così .app resta SEMPRE esattamente
+   100dvh, il calcolo flex di .app-main si vincola correttamente allo
+   spazio realmente disponibile (100dvh meno l'header), ed è SOLO a
+   quel punto che un contenuto più alto (#screen-results) genera un
+   overflow VERO dentro .app-main — esattamente il comportamento già
+   presupposto (e già commentato) nel banner introduttivo di
+   screens.css sulla tecnica di centratura verticale, che infatti non ha
+   richiesto alcuna modifica: il bug viveva un livello più in alto,
+   nel contenitore shell, non nel layout delle singole schermate.
+   Verificato con lo stesso browser di riproduzione: dopo la correzione
+   .app-main mostra overflow reale (scrollHeight > offsetHeight) e
+   rotellina/tastiera lo scrollano correttamente, mentre il documento
+   HTML torna a non avere più alcun overflow proprio.
+
    Il contenuto interno di ciascun .screen — larghezza, centratura,
    padding — resta di competenza di screens.css: qui si stabilisce solo
    la relazione fra header e main.
    ------------------------------------------------------------------------ */
 
 .app {
-  min-height: 100vh;  /* fallback per browser privi di supporto a dvh */
-  min-height: 100dvh; /* altezza reale sui mobile, al netto delle barre indirizzo dinamiche */
+  height: 100vh;  /* FIX 10 luglio 2026: era min-height, vedi banner sopra */
+  height: 100dvh; /* altezza reale sui mobile, al netto delle barre indirizzo dinamiche */
   display: flex;
   flex-direction: column;
   padding-left: var(--safe-area-left);
