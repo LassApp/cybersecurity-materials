@@ -189,30 +189,25 @@
 /* Active — scansione in corso (pulsante: comunica un processo in atto) */
 .status-dot--active {
   background-color: var(--color-status-active);
-  box-shadow: var(--glow-accent);
+  box-shadow: var(--glow-danger);
   animation: status-pulse calc(var(--duration-slower) * 2) var(--ease-standard) infinite;
 }
 /*
-  ECCEZIONE DELIBERATA al pattern "stessa variabile per pallino e testo"
-  descritto nel commento introduttivo di questa sezione: qui il testo
-  NON usa --color-status-active (= --color-accent, blue-500), a
-  differenza degli altri 4 stati. Motivo: --color-accent è verificato
-  in variables.css solo per componenti UI (4.05:1 su bg-app, soglia
-  3:1), non per testo piccolo — e questo testo vive per giunta su
-  --color-bg-header (navy-800, più chiaro di bg-app), dove blue-500
-  scende a un contrasto reale di 3.76:1, sotto la soglia AA 4.5:1
-  richiesta per testo normale (--text-sm/13px non rientra nella
-  definizione WCAG di "testo grande"). --color-accent-text (blue-400)
-  è il token che variables.css riserva esattamente a questo caso ("per
-  testo o link colorati su sfondo scuro usare --color-accent-text") e
-  raggiunge 5.56:1 sullo stesso sfondo: qui si applica quella
-  indicazione già scritta nel design system. Il pallino resta invece su
-  --color-status-active (blue-500): come riempimento pieno di un
-  elemento da 8px, affiancato dal proprio --glow-accent, è un
-  componente UI a tutti gli effetti e la soglia 3:1 resta ampiamente
-  soddisfatta.
+  MODIFICA 10 luglio 2026: --color-status-active è ora --color-danger
+  (rosso corallo), non più --color-accent (blu) — vedi changelog in
+  variables.css. Questo risolve anche l'eccezione che governava questa
+  riga in precedenza: col blu, --color-status-active scendeva a 3.76:1
+  su --color-bg-header (sotto la soglia AA 4.5:1 per testo normale),
+  quindi .status-text--active era costretto a usare --color-accent-text
+  (blue-400, 5.56:1) invece del token di stato diretto — unica
+  eccezione al pattern "stessa variabile per pallino e testo" seguito
+  dagli altri 4 stati. Col rosso il contrasto è ampiamente sufficiente
+  anche sull'header (5.27:1, verificato) già con --color-danger stesso:
+  l'eccezione non serve più, .status-text--active torna ad allinearsi
+  al pattern comune. box-shadow aggiornato da --glow-accent a
+  --glow-danger per coerenza cromatica col bagliore.
 */
-.status-text--active { color: var(--color-accent-text); }
+.status-text--active { color: var(--color-status-active); }
 
 /* Warning — rischio potenziale rilevato (pulsante) */
 .status-dot--warning {
@@ -298,7 +293,7 @@
 .scan-progress-fill {
   height: 100%;
   width: 0%; /* coerente con lo "0%" già presente nell'HTML statico */
-  background-color: var(--color-accent);
+  background-color: var(--color-danger); /* MODIFICA 10 luglio 2026: era --color-accent (blu) */
   border-radius: var(--radius-full);
   transition: width var(--duration-base) var(--ease-standard);
 }
