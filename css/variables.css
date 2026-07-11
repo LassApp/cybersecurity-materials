@@ -148,9 +148,19 @@
 
   /* Indicatore di stato (#header-status-dot / .status-dot): alias
      dedicati ai 5 stati del pallino/testo nell'header, così i moduli
-     JS applicano solo classi, mai colori hardcoded. */
+     JS applicano solo classi, mai colori hardcoded.
+     MODIFICA 10 luglio 2026: --color-status-active è passato da
+     var(--color-accent) (blu) a var(--color-danger) (rosso corallo) —
+     richiesta esplicita per dare fin dall'avvio della schermata di
+     scansione (#screen-scan) un tono d'allerta invece che rassicurante,
+     coerente con .scan-progress-fill (components.css) e
+     .scan-step--active (screens.css), cambiati in coppia. Nessun
+     impatto su --color-accent stesso, riferimento invariato usato in
+     decine di altri punti dell'app (bottoni, icona reveal, brand
+     finale...): qui si rimappa solo l'alias "stato attivo", non la
+     primitiva. */
   --color-status-neutral: var(--navy-300);  /* "Initializing…" */
-  --color-status-active: var(--color-accent);   /* scansione in corso */
+  --color-status-active: var(--color-danger);   /* scansione in corso */
   --color-status-warning: var(--color-warning); /* rischio potenziale rilevato */
   --color-status-danger: var(--color-danger);   /* rischio confermato/critico */
   --color-status-success: var(--color-success); /* verifica completata */
