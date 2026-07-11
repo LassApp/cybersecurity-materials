@@ -434,9 +434,12 @@
   tre .status-dot--* già previsti in components.css.
 */
 .scan-step--active .scan-step__dot {
-  border-color: var(--color-accent);
-  background-color: var(--color-accent);
-  box-shadow: var(--glow-accent);
+  border-color: var(--color-danger);
+  background-color: var(--color-danger);
+  box-shadow: var(--glow-danger);
+  /* MODIFICA 10 luglio 2026: era --color-accent/--glow-accent (blu),
+     cambiato in coppia con .scan-progress-fill (components.css) e
+     --color-status-active (variables.css) — vedi changelog lì. */
   animation: status-pulse calc(var(--duration-slower) * 2) var(--ease-standard) infinite;
 }
 
